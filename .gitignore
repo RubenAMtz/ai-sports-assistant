@@ -1,0 +1,13 @@
+**/*.hdr
+**/test/
+**/train/
+camera_script.py
+camera_script
+file.csv
+file2.csv
+*.blend1
+ssd_mobilenet_v1_coco_2018_01_28/
+*.png
+test/
+train/
+**/*.record

@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>291.png</filename>
+	<path>C:\Users\ruben\Documents\Github\bar-detection\images\291.png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>800</width>
+		<height>600</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>barbell</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>128</xmin>
+			<ymin>118</ymin>
+			<xmax>631</xmax>
+			<ymax>325</ymax>
+		</bndbox>
+	</object>
+</annotation>
