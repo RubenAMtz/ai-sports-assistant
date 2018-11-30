@@ -12,7 +12,7 @@ An AI and computer vision based system for the automation of coaching feedback f
 
 For 2D pose estimation we will be using the strategy proposed by "Real-Time Multi-Person 2d pose estimation using part affinity fields" 
 paper. The code can be found [here](https://github.com/CMU-Perceptual-Computing-Lab/openpose).  
-Multiple strategies for 3D pose estimation where tested, however, as the literature states and as the results showed, it is not ready for
+Multiple strategies for 3D pose estimation were tested, however, as the literature states and as the results showed, it is not ready for
 industrial applications, it does not perform well under conditions with multiple people in the scene and lacks ability to reconstruct
 "awkward" poses.
 
