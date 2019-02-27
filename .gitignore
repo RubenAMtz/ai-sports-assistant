@@ -1,0 +1,5 @@
+*/FFmpeg
+*/__pycache__
+*/.vscode
+number_of_frames_per_video.csv
+*.exe
