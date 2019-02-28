@@ -1,3 +1,8 @@
+"""
+utilities.py
+
+File with functions commonly used in the project
+"""
 import os
 import subprocess
 import pandas as pd

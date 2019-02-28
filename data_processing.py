@@ -1,3 +1,9 @@
+"""
+data_processing.py
+
+File used for data processing the experimental videos for lifting
+"""
+
 import pandas as pd
 import numpy as np
 import os
@@ -10,11 +16,12 @@ from keras.models import Model
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import check_X_y
-from video import Video, Videos
+from video import Video, Videos, VideoStateMachine
+from constants import COLUMNS, COLUMNS_NORM
 
-INDEX = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder","LElbow","LWrist",
-            "MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
-            "LEar","LBigToe","LSmallToe","LHeel","RBigToe","RSmallToe","RHeel"]
+# INDEX = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder","LElbow","LWrist",
+#             "MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
+#             "LEar","LBigToe","LSmallToe","LHeel","RBigToe","RSmallToe","RHeel"]
 
 def pad_video_name(video, format):
     return '{}{}'.format(str(video).zfill(3), format)
@@ -42,61 +49,61 @@ def calculate_angles(joint_a, joint_b, joint_ref, data):
 def sad_normalize(x):
     return (x - np.min(x)) / (np.max(x) - np.min(x))
 
-def feature_engineering(csv_with_frames):
+def lifting_categories(csv_with_frames):
     """
     csv_with_frames: path, to file containing all normalized frames
     """
     # data filtering?
-    # angles, only knee and hip angles are important, maybe shoulder but openpose has trouble detecting that accurately
     data = pd.read_csv(csv_with_frames, index_col=0)
     videos = Videos('number_of_frames_per_video.csv', target='../data_augmentation/joint_data_3d.csv').list
     #print(videos.list[1].neck_y.frame(f=0))
-    count = 0
+    
+    acc_categories = pd.DataFrame(columns=['diff', 'position'])
+
     for vid in videos:
-        #midhip all frames
-        midhip_y_all_frames = vid.midhip_y.df.values
-        #midhip first frame
-        midhip_y_ff = midhip_y_all_frames[0]
-        #wrists all frames
-        rwrist_y_all_frames = vid.rwrist_y.df.values
-        lwrist_y_all_frames = vid.lwrist_y.df.values
-        #knees all frames
-        rknee_y_all_frames = vid.rknee_y.df.values
-        lknee_y_all_frames = vid.lknee_y.df.values
-        #neck all frames
-        neck_y_all_frames = vid.neck_y.df.values
+        category = pd.DataFrame()
+        start = 0
+        take_off = 0
+        power_position = 0
+        extension = 0
+        reception_snatch = 0
+        reception_clean = 0
+        jerk = 0
+        # iterate through frames of every single video (rows of df)
+        sm = VideoStateMachine(vid)
+        for frame in range(len(vid.df.values)):
+            sm.tick(frame)
+            current_state = sm.state
+            #print(current_state)
+            if current_state == "start":
+                start += 1
+            elif current_state == "take-off":
+                take_off += 1
+            elif current_state == "power-position":
+                power_position += 1
+            elif current_state == "extension":
+                extension += 1
+            elif current_state == "reception-snatch":
+                reception_snatch += 1
+            elif current_state == "reception-clean":
+                reception_clean += 1
+            elif current_state == "jerk":
+                jerk += 1
+        #break
+         # # append every categorized video and create an acc_categories
+        print("[{}] Start: {}, Take off {}, Power Position {}, Extension {}, Reception Snatch {}, Reception Clean {}, Jerk {}".format(vid.number, start, take_off, power_position, extension, reception_snatch, reception_clean, jerk))
         
-        # iterate through all frames and classify them
-        for i, midhip_y_frame in enumerate(midhip_y_all_frames):
-            data.loc[i, 'diff'] = midhip_y_frame - midhip_y_ff
-            if (midhip_y_frame - midhip_y_ff) <= (0 + midhip_y_ff * 0.01):
-                data.loc[i, 'position'] = 'start'
-
-            if (midhip_y_frame - midhip_y_ff) > (0 + midhip_y_ff * 0.01):
-                data.loc[i, 'position'] = 'take_off'
-
-            if (rwrist_y_all_frames[i] > rknee_y_all_frames[i]):
-                data.loc[i, 'position'] = 'power_position'
-            
-            if (rwrist_y_all_frames[i] > midhip_y_all_frames[i]):
-                data.loc[i, 'position'] = 'extension'
-            
-            if (rwrist_y_all_frames[i] > neck_y_all_frames[i]):
-                data.loc[i, 'position'] = 'reception'
-            
-        count += 1
-        if count >2: #run for two videos
-            break
+        # try:
+        #     acc_categories = acc_categories.append(category, ignore_index=True)    
+        # except:
+        #     acc_categories = category
+        # if count >2: #run for two videos
+        #     break
         
-    with pd.option_context('display.max_rows', 300, 'display.max_columns', None):
+    #with pd.option_context('display.max_rows', 300, 'display.max_columns', None):
         # print(df)
-        print(data.head(80))
-    # detect starting position, maybe using only first frame
-    # detect take off, RWrist below knees (maybe knee angle below 90 degrees but it does not hold for really bad starting positions)
-    # detect power position, RWrist above knees and below hip
-    # detect extension, RWrist above hip and below RShoulder
-    # detect receiving position, RWrist above shoulder (for snatch), but also:
-    # detect receiving position, RElbow around RShoulder (could use std+-), hip angle goes back to a minimum (after extension)
+        #print(acc_categories.head(160))
+
     pass
 
 def data_augmentation(data, extra_sets=2):
@@ -170,115 +177,118 @@ def data_augmentation(data, extra_sets=2):
         #plt.show()
 
 def compute_metrics():
-    # speed
-    # acceleration
-    # max height
-    # speed from extension to receiving position
+    # using 2d videos:
+        # speed
+        # acceleration
+        # max height
+        # speed from extension to receiving position
+        # barbell path
+
     pass
 
-COLUMNS = [
-    'nose_x',
-    'nose_y',
-    'neck_x',
-    'neck_y',
-    'rshoulder_x',
-    'rshoulder_y',
-    'relbow_x',
-    'relbow_y',
-    'rwrist_x',
-    'rwrist_y',
-    'lshoulder_x',
-    'lshoulder_y',
-    'lelbow_x',
-    'lelbow_y',
-    'lwrist_x',
-    'lwrist_y',
-    'midhip_x',
-    'midhip_y',
-    'rhip_x',
-    'rhip_y',
-    'rknee_x',
-    'rknee_y',
-    'rankle_x',
-    'rankle_y',
-    'lhip_x',
-    'lhip_y',
-    'lknee_x',
-    'lknee_y',
-    'lankle_x',
-    'lankle_y',
-    'reye_x',
-    'reye_y',
-    'leye_x',
-    'leye_y',
-    'rear_x',
-    'rear_y',
-    'lear_x',
-    'lear_y',
-    'lbigtoe_x',
-    'lbigtoe_y',
-    'lsmalltoe_x',
-    'lsmalltoe_y',
-    'lheel_x',
-    'lheel_y',
-    'rbigtoe_x',
-    'rbigtoe_y',
-    'rsmalltoe_x',
-    'rsmalltoe_y',
-    'rheel_x',
-    'rheel_y'
-    ]
+# COLUMNS = [
+#     'nose_x',
+#     'nose_y',
+#     'neck_x',
+#     'neck_y',
+#     'rshoulder_x',
+#     'rshoulder_y',
+#     'relbow_x',
+#     'relbow_y',
+#     'rwrist_x',
+#     'rwrist_y',
+#     'lshoulder_x',
+#     'lshoulder_y',
+#     'lelbow_x',
+#     'lelbow_y',
+#     'lwrist_x',
+#     'lwrist_y',
+#     'midhip_x',
+#     'midhip_y',
+#     'rhip_x',
+#     'rhip_y',
+#     'rknee_x',
+#     'rknee_y',
+#     'rankle_x',
+#     'rankle_y',
+#     'lhip_x',
+#     'lhip_y',
+#     'lknee_x',
+#     'lknee_y',
+#     'lankle_x',
+#     'lankle_y',
+#     'reye_x',
+#     'reye_y',
+#     'leye_x',
+#     'leye_y',
+#     'rear_x',
+#     'rear_y',
+#     'lear_x',
+#     'lear_y',
+#     'lbigtoe_x',
+#     'lbigtoe_y',
+#     'lsmalltoe_x',
+#     'lsmalltoe_y',
+#     'lheel_x',
+#     'lheel_y',
+#     'rbigtoe_x',
+#     'rbigtoe_y',
+#     'rsmalltoe_x',
+#     'rsmalltoe_y',
+#     'rheel_x',
+#     'rheel_y'
+#     ]
 
-COLUMNS_NORM = [
-    'nose_x',
-    'nose_y',
-    'neck_x',
-    'neck_y',
-    'rshoulder_x',
-    'rshoulder_y',
-    'relbow_x',
-    'relbow_y',
-    'rwrist_x',
-    'rwrist_y',
-    'lshoulder_x',
-    'lshoulder_y',
-    'lelbow_x',
-    'lelbow_y',
-    'lwrist_x',
-    'lwrist_y',
-    'midhip_x',
-    'midhip_y',
-    'rhip_x',
-    'rhip_y',
-    'rknee_x',
-    'rknee_y',
-    'rankle_x',
-    'rankle_y',
-    'lhip_x',
-    'lhip_y',
-    'lknee_x',
-    'lknee_y',
-    'lankle_x',
-    'lankle_y',
-    'reye_x',
-    'reye_y',
-    'leye_x',
-    'leye_y',
-    'rear_x',
-    'rear_y',
-    'lbigtoe_x',
-    'lbigtoe_y',
-    'lsmalltoe_x',
-    'lsmalltoe_y',
-    'lheel_x',
-    'lheel_y',
-    'rbigtoe_x',
-    'rbigtoe_y',
-    'rsmalltoe_x',
-    'rsmalltoe_y',
-    'rheel_x',
-    'rheel_y'
-    ]
+# COLUMNS_NORM = [
+#     'nose_x',
+#     'nose_y',
+#     'neck_x',
+#     'neck_y',
+#     'rshoulder_x',
+#     'rshoulder_y',
+#     'relbow_x',
+#     'relbow_y',
+#     'rwrist_x',
+#     'rwrist_y',
+#     'lshoulder_x',
+#     'lshoulder_y',
+#     'lelbow_x',
+#     'lelbow_y',
+#     'lwrist_x',
+#     'lwrist_y',
+#     'midhip_x',
+#     'midhip_y',
+#     'rhip_x',
+#     'rhip_y',
+#     'rknee_x',
+#     'rknee_y',
+#     'rankle_x',
+#     'rankle_y',
+#     'lhip_x',
+#     'lhip_y',
+#     'lknee_x',
+#     'lknee_y',
+#     'lankle_x',
+#     'lankle_y',
+#     'reye_x',
+#     'reye_y',
+#     'leye_x',
+#     'leye_y',
+#     'rear_x',
+#     'rear_y',
+#     'lbigtoe_x',
+#     'lbigtoe_y',
+#     'lsmalltoe_x',
+#     'lsmalltoe_y',
+#     'lheel_x',
+#     'lheel_y',
+#     'rbigtoe_x',
+#     'rbigtoe_y',
+#     'rsmalltoe_x',
+#     'rsmalltoe_y',
+#     'rheel_x',
+#     'rheel_y'
+#     ]
 
 def data_loading(path, clean=True, cols_to_drop=None):
     """
@@ -335,7 +345,7 @@ data_augmentation(data, extra_sets=5)
 frames_per_video = pd.read_csv('./number_of_frames_per_video.csv', index_col=0)
 #print(frames_per_video)
 
-feature_engineering('../data_augmentation/joint_data_3d_normalized.csv')
+lifting_categories('../data_augmentation/joint_data_3d_normalized.csv')
 
 #print(data.values.reshape(len(data)//2,25))
 
