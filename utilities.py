@@ -19,6 +19,9 @@ def main():
             os.mkdir(path)
 
 def cut_video(input_filename, time_window, folder, output_filename, output_path=None):
+    """
+    time window: list, format of time is 00:00:00.xxx
+    """
     if output_path is None:
         output_path = "D:/Experiment/processed-videos-2d/"
     if os.path.isfile("{}/{}/{}".format(output_path, folder, output_filename)):
@@ -57,23 +60,26 @@ def ffmpeg_time(time):
     return time
 
 def create_json(video_read_path, video_save_path, json_path):   
-    DIR = "D:/Experiment/processed-videos-2d/"
+    #DIR = "D:/Experiment/processed-videos-2d/"
+    DIR = "D:/Experiment/processed-videos-3d/videos/"
     # folder where openposedemo.exe is to be executed at
     os.chdir('C:/Users/ruben/Documents/Github/openpose')
 
     # save json files relative to DIR
-    if not os.path.isdir(json_path):
+    print(DIR + json_path)
+    if not os.path.isdir(DIR + json_path):
         os.makedirs(DIR + json_path)
     
     args = [
         'OpenPoseDemo',
         "--video", DIR + video_read_path,
-        "--write_video", DIR + video_save_path,
+        #"--write_video", DIR + video_save_path,
         "--write_json", DIR + json_path,
         #"--net_resolution", "1312x736"
         #"--scale_number", "4",
         #"--scale_gap", "0.25",
-        #"--display", "0",
+        "--display", "0",
+        "--render_pose", "0",
         "--number_people_max", "1"
         ]
     subprocess.call(args)
@@ -148,9 +154,9 @@ def csv_to_args(data, json=False, csv=False, video_cut=False):
                     #print("input:",video, "- folder:", folder, "- output:", video_result, ffmpeg_time(start_t), ffmpeg_time(stop_t))
                     cut_video(video, (ffmpeg_time(start_t), ffmpeg_time(stop_t)), folder, video_result)
                 
-scheme = pd.DataFrame(columns=['posicion_inicial','despegue','power_position','extension','recepcion','jerk (clean)'], index=files_created)
+# scheme = pd.DataFrame(columns=['posicion_inicial','despegue','power_position','extension','recepcion','jerk (clean)'], index=files_created)
 #scheme.to_csv('./grading_scheme.csv',index=True)
 
 # #file with timestamp data :
 data = pd.read_csv('./video-split-data.csv', dtype=str, na_filter=False) #do not parse na values
-#csv_to_args(data=data, json=True)
+csv_to_args(data=data, json=True)

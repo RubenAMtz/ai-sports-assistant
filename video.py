@@ -86,12 +86,12 @@ class VideoStateMachine(object):
 
     def state4(self, frame):
         self.state = "extension"
-        
+        range_ = 0.1
         neck_y_all = self.video.neck_y.df.values
         rwrist_y_all = self.video.rwrist_y.df.values
         
         # condition to jump to reception (snatch / clean) (interval)
-        if ((rwrist_y_all[frame] < neck_y_all[frame] + neck_y_all[frame] * 0.2) and (rwrist_y_all[frame] > neck_y_all[frame] - neck_y_all[frame] * 0.2)):
+        if ((rwrist_y_all[frame] < neck_y_all[frame] + neck_y_all[frame] * range_) and (rwrist_y_all[frame] > neck_y_all[frame] - neck_y_all[frame] * range_)):
             if self.video.number < 107:
                 return self.state5
             else:

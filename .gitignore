@@ -1,5 +1,8 @@
 **/FFmpeg
 **/__pycache__
 **/.vscode
-number_of_frames_per_video.csv
 *.exe
+**/test_code
+video-split-data.csv
+video-split-data-3d.csv
+number_of_frames_per_video.csv

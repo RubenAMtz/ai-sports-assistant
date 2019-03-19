@@ -1,0 +1,158 @@
+#:kivy 1.0.9
+
+<WindowShape>:
+    Label:
+        canvas.before:
+            
+            Color:
+                rgba: 1, 1, 1, 1
+            
+            Rectangle:
+                # width: 1
+                pos: self.x, self.y
+                size: self.width, self.height
+        
+        id: title
+        text: "Pose Classification"
+        size_hint: (None, None)
+        pos: root.width / 2 - self.width/2 , root.height - 100 
+        width: root.width
+        font_size: 48
+        color: 0,0,0,1
+
+    VideoCanvas:
+        canvas.before:
+            
+            Color:
+                rgba: .5, .5, .5, .4
+            
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        id: video_canvas
+        size_hint: (None, None)
+        width: 1024
+        height: 576
+        pos: 0, root.height - self.height - 100
+    
+    
+    BoxLayout:
+        canvas.before:
+            
+            Color:
+                rgba: .5, .5, .5, .4
+            
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        orientation: 'vertical'
+        size_hint: (None, None)
+        width: 200
+        height: 50
+        pos: 1024-200, 92
+
+        GridLayout:
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, .9
+                
+                Rectangle:
+                    pos: self.x, self.y
+                    size: self.width, self.height
+            cols: 2
+            
+            Label:
+                text: "Frame:"
+                color: 0,0,0,1
+            Label:
+                id: current_frame
+                text: "? / ?"
+                color: 0,0,0,1
+            Label:
+                text: "Video:"
+                color: 0,0,0,1
+            Label:
+                id: video_name
+                text: "?"
+                color: 0,0,0,1
+
+
+    
+    # BottomLayout
+    BoxLayout:
+        size_hint: (None, None)
+        width: 1024
+        height: 92
+        pos: 0, 0
+        canvas.before:
+            
+            Color:
+                rgba: .5, .5, .5, .4
+            
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        
+        
+        FileDirectoryButton:
+            id: file_dir_button
+        
+        BackwardButton:
+            id: backward_button
+
+        PlayButton:
+            id: play_button
+
+        PauseButton:
+            id: pause_button
+
+        ForwardButton:
+            id: forward_button
+    
+    # RightLayout
+    BoxLayout:
+        size_hint: (None, None)
+        width: 1366 - 1024
+        height: root.height - 100
+        pos: 1024, 0
+        canvas.before:
+            
+            Color:
+                rgba: .5, .5, .5, .4
+            
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        
+        GridLayout:
+            cols: 1
+            Label:
+                canvas.before:
+            
+                    Color:
+                        rgba: .5, .5, .5, .4
+                    
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+                text: "Pose"
+                font_size: 32
+            Label:
+                id: pose_lbl
+                text: "?"
+                font_size: 32
+            Label:
+                canvas.before:
+            
+                    Color:
+                        rgba: .5, .5, .5, .4
+                    
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
+                text: "Grade"
+                font_size: 32
+            Label:
+                id: grade_lbl
+                text: "?"
+                font_size: 32
