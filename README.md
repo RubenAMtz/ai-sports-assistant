@@ -46,4 +46,4 @@ You have to bear in mind that the models were trainined with a limited amount of
 
 ## Feedback
 
-- Please do not hesitate to leave feed back or share with us your videos so we can keep growing the data base and potentially improve the results: ruben.alvarezmartinez@ucdconnect.ie
+- Please do not hesitate to leave feed back or share with us your videos so we can keep growing the data base and potentially improve the results: rubenalvarez@pixail.ai
